@@ -1,9 +1,10 @@
-package com.example.springSecurityExample.controller;
+package com.example.springSecurityExample.security;
 
 import com.example.springSecurityExample.request.AuthenticationRequest;
 import com.example.springSecurityExample.request.RegisterRequest;
 import com.example.springSecurityExample.response.AuthenticationResponse;
-import com.example.springSecurityExample.security.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,15 @@ public class AuthenticationController {
         return new ResponseEntity<>(authenticationService.register(request), HttpStatus.OK);
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping(value = "/authenticate")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
         return authenticationService.authenticate(request);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String jwt = request.getHeader("Authorization").substring(7);
+        return new ResponseEntity<>(authenticationService.logout(jwt), HttpStatus.OK);
     }
 
 }

@@ -3,7 +3,6 @@ package com.example.springSecurityExample.entities;
 
 import com.example.springSecurityExample.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -31,11 +30,8 @@ public class Utente implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank(message = "il nickname non può essere una stringa vuota, ma deve contenere dei caratteri")
-    @Size(min = 5, max = 30, message = "il nickname deve avere una lunghezza compresa tra 5 e 30 caratteri")
     @Column(nullable = false)
     private String nickname;
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\n")
     @Column(nullable = false, unique = true)
     private String email;
     private String password;
@@ -49,7 +45,6 @@ public class Utente implements UserDetails {
     @Column(nullable = false)
     private LocalDateTime lastUpdate;
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
@@ -59,5 +54,4 @@ public class Utente implements UserDetails {
     public String getUsername() {
         return email;
     }
-
 }

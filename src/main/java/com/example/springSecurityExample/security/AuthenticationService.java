@@ -37,10 +37,10 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest request) {
         Utente utente = Utente.builder()
-                .nickname(request.getNickname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.TO_CONFIRM)
+                .nickname(request.nickname())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .role(Role.USER)
                 .build();
         String jwtToken = jwtService.generateToken(utente);
         utenteService.insertUtente(utente);
@@ -49,7 +49,7 @@ public class AuthenticationService {
 
     public ResponseEntity<?> authenticate(AuthenticationRequest request) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername().toLowerCase(), request.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.username().toLowerCase(), request.password()));
         }
         catch (DisabledException e) {
             return new ResponseEntity<>(ErrorResponse.builder()
@@ -69,12 +69,16 @@ public class AuthenticationService {
                     .message("Login fallita, credenziali errate!")
                     .build(), HttpStatus.BAD_REQUEST);
         }
-        String jwtToken = jwtService.generateToken(utenteService.findOneByEmail(request.getUsername()));
-        return new ResponseEntity<>(AuthenticationResponse.builder().token(jwtToken), HttpStatus.OK);
+        String jwtToken = jwtService.generateToken(utenteService.findOneByEmail(request.username()));
+        return new ResponseEntity<>(AuthenticationResponse.builder().token(jwtToken).build(), HttpStatus.OK);
     }
 
-    public void logout(String token) {
+    public ErrorResponse logout(String token) {
         tokenBlackListService.insertTokenBlackList(TokenBlackList.builder().token(token).build());
+        return ErrorResponse.builder()
+                .exception("LogoutException")
+                .message("sei stato sloggato, fai login di nuovo per accedere")
+                .build();
     }
 
 }

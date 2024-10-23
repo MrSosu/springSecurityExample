@@ -2,6 +2,7 @@ package com.example.springSecurityExample.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +17,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY = "8+vXK/1n3SjPwuPPOabbTgWnqny5Z8BuZLkk7Llr0Dz8vzydeaCflDZWb2ymSGFabpKRcMd2jyFeyjikY8YU+RNOs6xNUjhq1QBufLpgd0YexGi9Cc+Va+T+lpHBm6ZfEYuyG+5Zisu8J3Vn1DQzMsXpivsnX2dmNjBBcx8xKCmfTJmJx6j8SzeEOFVmj+ypISPsTO7tVJ6i8VORChncbZZC6lD9/Jbh8QYLY/3cwlcDgWEBOzL3oVmlFVW5QqScm8x2IU+9cv0PudkFSg5Yh+UEOY6E14o41aNf0MWuB/7vCrDaHAVQEt65yiwruSSYvq+q3yCMlTBAmMQkUA4dEg2ldmKIW9qr6D05qm2Lsag=";
+    private final String SECRET_KEY = "5N32lYfUsbZI2tmkf1NlSImJwOl5A1aH01FDN0jNLuw=";
 
     public String generateToken(UserDetails utente) {
         return generateToken(new HashMap<>(), utente);
@@ -28,7 +29,7 @@ public class JwtService {
                 .setSubject(utente.getUsername())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000000L *6000*24))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .signWith(getSigningKey())
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -39,9 +40,9 @@ public class JwtService {
 
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
 
@@ -58,4 +59,13 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token); // Estrai lo username dal token
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expiration = extractExpirationDate(token); // Estrai la data di scadenza dal token
+        return expiration.before(new Date()); // Verifica se la scadenza è prima dell'ora corrente
+    }
 }
